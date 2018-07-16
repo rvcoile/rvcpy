@@ -8,6 +8,8 @@ import numpy as np
 
 import statFunc
 from PrintAuxiliary import Print_DataFrame
+from GaussWeightsAndPoints import GaussPoints
+
 
 
 ########################
@@ -155,13 +157,28 @@ def Taylor(limitstate,ParameterDict):
 
 	return m,np.sqrt(s2)
 
+def MaxEnt_GaussEval(limitstate,ParameterDict,L=5):
+	# Evaluate Gauss point realizations for MaxEnt calculation
+	# input
+	# * limitstate: symbolic limit state function
+	# * ParameterDict: dictionary of all parameters, including probabilistic discription
+	# * L: number of Gauss points per stochastic variable (default=5)
+	# output
+	# * Prints *.xlsx with Gauss realizations for MaxEnt2018.py application
+
+	## calculate Gauss point realizations
+	symbolList=limitstate.atoms(sy.Symbol); nvar=len(symbolList) # number of stochastic variables limitstate
+	nSim=(L-1)*n+1 # number of sample points - correct for odd L only... But even number inefficient in current procedure
+	points=GaussPoints(L) # Gauss points for L
+
+	print(points)
 
 
 ##########
 ## TEST ##
 ##########
 
-# # limit state
+# limit state
 # r,e1,e2=sy.symbols("r e1 e2")
 # g=r-e1*e2
 
