@@ -26,6 +26,20 @@ def GaussWeighting(X):
 		W[variables]=weights
 	return W
 
+def GaussSampleScheme(L,n,nSim):
+
+    # initialize
+    scheme=pd.DataFrame(index=np.arange(1,nSim+1),columns=['j','l'])    
+
+    for l in np.arange(n+1):
+
+        if l==0:
+            scheme.loc[1,:]=[0,0] # starting entry as median value realization
+        else:
+            scheme.loc[2+4*(l-1):2+4*l-1,:]=[[1,l],[2,l],[4,l],[5,l]]    
+
+    return scheme
+
 def GaussWeights(n):
 	####################################################################
 	### This is Gauss Hermite - recode later for other options...!!! ###

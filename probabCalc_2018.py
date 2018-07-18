@@ -6,10 +6,11 @@ import pandas as pd
 import sympy as sy
 import numpy as np
 
+from copy import deepcopy
+
 import statFunc
 from PrintAuxiliary import Print_DataFrame
-from GaussWeightsAndPoints import GaussPoints
-
+from GaussWeightsAndPoints import GaussPoints, GaussSampleScheme
 
 
 ########################
@@ -60,6 +61,89 @@ def LS_evaluation(LS_eval,nvar,xMatrix):
 
 	return lsEvalList
 
+def MDRM_CalculationPoints(samplingScheme,GaussPoint_df):
+
+    modelInput=pd.DataFrame(index=samplingScheme.index,columns=GaussPoint_df.columns)
+
+    # initialize median values for all parameter realizations
+    for var in modelInput.columns:
+        modelInput[var]=GaussPoint_df.loc[3,var]
+
+    # correct on every line the single modified Gauss point
+    for i in modelInput.index:
+
+        # j,l realization
+        [j,l]=samplingScheme.loc[i,:]
+
+        # assignment
+        if l!=0: # 0-value corresponds with median point
+            modelInput.loc[i,l]=GaussPoint_df.loc[j,l]
+
+    return modelInput
+
+def MDRMG_sampling(limitstate,ParameterDict,L):
+	# input
+	# * limitstate: symbolic limit state function - here: more appropriate function 'Y'
+	# * ParameterDict: dictionary of all parameters, including probabilistic discription
+	# * L: number of Gauss points per stochastic variable (default=5)
+	# output
+	# * Prints *.xlsx with Gauss realizations for MaxEnt2018.py application
+	#
+	# indexing in the ParameterDict - general indexing  
+	indexDict={}
+	for key in ParameterDict:
+		indexDict[ParameterDict[key]['name']]=key
+
+	## calculate Gauss point realizations
+	symbolList=limitstate.atoms(sy.Symbol); n=len(symbolList) # number of stochastic variables limitstate
+	nSim=(L-1)*n+1 # number of sample points - correct for odd L only... But even number inefficient in current procedure
+	points=GaussPoints(L) # Gauss points for L
+	r_realizations=statFunc.F_Normal(points,0,1); r_realizations=r_realizations.flatten() # quantiles corresponding with Gauss points
+	
+	# realizations per variable
+	GaussPoint_df=pd.DataFrame(index=np.arange(1,L+1))
+	varOrder=[]
+	for i,var in enumerate(indexDict.keys()):
+	    localDict=ParameterDict[indexDict[var]]
+	    varOrder.append(var)
+	    samplepoints=ParameterRealization_r(localDict,r_realizations)
+	    GaussPoint_df[i+1]=samplepoints
+
+	## assign in sampling scheme ##
+	samplingScheme=GaussSampleScheme(L,n,nSim)
+	samples_modelInput=MDRM_CalculationPoints(samplingScheme,GaussPoint_df); samples_modelInput.columns=varOrder
+
+	return samples_modelInput,samplingScheme,varOrder
+
+def VarDict_to_df(ParameterDict):
+	# transforms ParameterDict syntax into pd.DataFrame syntax (MaxEnt_sampling.py)
+	# but VarOrder is important
+
+	# indexing in the ParameterDict - general indexing
+	# allows to call the correct parameter-dictionary based on the name of the variable as it appears in the limitstate  
+	indexDict={}
+	for key in ParameterDict:
+		indexDict[ParameterDict[key]['name']]=key
+
+	print(len(indexDict.keys()))
+
+	# define an order of variables, and assign accordingly to pd.DataFrame
+	Parameter_df=pd.DataFrame(index=np.arange(len(indexDict.keys())+1),columns=['number','X','type','info1','info2','p1','p2'])
+	for i,X in enumerate(indexDict.keys()):
+
+		print(i)
+		print(X)
+		print()
+
+		## WIP ##
+
+		# save order for printing lists
+		# varOrder.append(X)
+		# # collect Dict (stochastic) variable
+		# localDict=ParameterDict[indexDict[var]]
+
+
+	# return Parameter_df,Parameter_df['X'].tolist()
 
 
 ###############
@@ -155,24 +239,53 @@ def Taylor(limitstate,ParameterDict):
 		if type(d)!=int: d=d[0]
 		s2=s2+d**2*xMatrix[1,i]**2
 
-	return m,np.sqrt(s2)
+	return m,np.sqrt(s2) 
 
 def MaxEnt_GaussEval(limitstate,ParameterDict,L=5):
 	# Evaluate Gauss point realizations for MaxEnt calculation
+	#
 	# input
-	# * limitstate: symbolic limit state function
+	# * limitstate: symbolic limit state function - here: more appropriate function 'Y'
 	# * ParameterDict: dictionary of all parameters, including probabilistic discription
 	# * L: number of Gauss points per stochastic variable (default=5)
 	# output
 	# * Prints *.xlsx with Gauss realizations for MaxEnt2018.py application
+	#
 
-	## calculate Gauss point realizations
-	symbolList=limitstate.atoms(sy.Symbol); nvar=len(symbolList) # number of stochastic variables limitstate
-	nSim=(L-1)*n+1 # number of sample points - correct for odd L only... But even number inefficient in current procedure
-	points=GaussPoints(L) # Gauss points for L
 
-	print(points)
+	# input evaluation
+	# opportunity for future evaluation : DET-detection and omission
+	symbolList=limitstate.atoms(sy.Symbol); n=len(symbolList) # number of stochastic variables limitstate
 
+	# issue: MaxEnt sampling takes pd.DataFrame (cfr. StochVar.xlsx) as input => need to develop switch or adapt code
+	# WIP - TMP hardcoded: ParameterDict as dict entry - not yet option to read *.xlsx
+	# print(isinstance(ParameterDict,dict))
+	# StochVar,varOrder=VarDict_to_df(ParameterDict) # transforms Dict to Stochvar-syntax
+
+	samples_modelInput,samplingScheme,varOrder=MDRMG_sampling(limitstate,ParameterDict,L)
+
+	# # add mean value realization if requested
+	# if SW_add_mean:
+	#     # initialize series
+	#     s = pd.Series(index=samples_modelInput.columns); s.name='MeanEval'
+	#     # iterate over stochastic variables and introduce mean value for each of them
+	#     for var in StochVar.columns:
+	#         local_StochVar=StochVar[var]
+	#         mean=MeanEval(local_StochVar)
+	#         s[local_StochVar['number']]=mean
+	#     # add series to sampling dataframe
+	#     samples_modelInput=samples_modelInput.append(s)
+
+	# evaluate model Y
+	Y=limitstate # for notation purposes only
+	YEval = sy.lambdify(tuple(varOrder), Y, 'numpy') # note: YEval identical to limitstateEval in MCS
+	MDRMG_realizations=LS_evaluation(YEval,n,samples_modelInput.values)
+
+	# set model output conform MaxEnt input requirement
+	MDRMG_out=deepcopy(samplingScheme); MDRMG_out['Y']=MDRMG_realizations
+	MDRMG_out=MDRMG_out[['Y','j','l']]
+
+	return samples_modelInput,samplingScheme,MDRMG_out
 
 ##########
 ## TEST ##
