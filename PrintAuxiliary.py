@@ -33,3 +33,11 @@ def RemoveFolderData(folder):
 		if os.path.isfile(file_path):
 			os.unlink(file_path)
 
+def PrintMaxEnt(data,targetdir,targetfilename,method='MCS'):
+
+	if method=='MCS':
+		# data as pd.Series
+		n=data.index.size;
+		index=np.arange(1,n+1)
+		df=pd.DataFrame(data,columns=[data.name]); df.index=index
+		Print_DataFrame([df],targetdir+'/'+targetfilename,['DATA'])
