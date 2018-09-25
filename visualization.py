@@ -89,15 +89,17 @@ def LinePlot_XmultiY(df,axisLabels=['X','Y'],Xticks=None,Yticks=None,SW_show=Fal
 	if SW_return:
 		return fig,ax1	
 
-def histogram(df):
+def histogram(df,Xticks,Yticks,width=1,Xlabel='X',Ylabel='PDF [-]'):
 	# bar plot of pd.DataFrame, index as X, column as Y
 	# not finalized
 
     # this is for plotting purpose
-    index = df['X']
-    fig= plt.bar(index,df['mcsPDF'])
-    plt.xlabel('Genre', fontsize=5)
-    plt.ylabel('No of Movies', fontsize=5)
-    plt.xticks(index, 'X', fontsize=5, rotation=30)
-    plt.title('Market Share for Each Genre 1995-2017')
+    index = df['X'].values
+    height = df['mcsPDF'].values
+    fig= plt.bar(index,height,width)
+    plt.xlabel(Xlabel, fontsize=10)
+    plt.ylabel(Ylabel, fontsize=10)
+    plt.xticks(Xticks, fontsize=8)
+    plt.yticks(Yticks,fontsize=8)
+    plt.title('Observed histogram')
     plt.show()
