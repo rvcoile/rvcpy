@@ -12,6 +12,10 @@ from scipy.stats import *
 ################################
 
 def LHS_rand(number_sim,number_variables,method='Olsson',test=False):
+    ## sample (r-values) generation according to LHS scheme
+    # method: r-value selection in specified interval
+        # 'Olsson': random selection
+        # 'Center': center of interval selection
 
     ### initialise ###
     ##################
@@ -89,13 +93,15 @@ def LHS_rand(number_sim,number_variables,method='Olsson',test=False):
 ### TEST-ZONE ###
 #################
 
-# number_sim=100
-# number_variables=5
+if __name__ == "__main__": 
+    
+    number_sim=100
+    number_variables=5
 
-# # LHS_rand(number_sim,number_variables)
+    # LHS_rand(number_sim,number_variables)
 
-# P, Sx, COV_Sx, L, Y2, S, COV_S=LHS_rand(number_sim,number_variables,'Olsson',True)
-# # P, Sx, COV_Sx, L, Y2, S, COV_S=LHS_rand(number_sim,number_variables,'Center',True)
+    P, Sx, COV_Sx, L, Y2, S, COV_S=LHS_rand(number_sim,number_variables,'Olsson',True)
+    # P, Sx, COV_Sx, L, Y2, S, COV_S=LHS_rand(number_sim,number_variables,'Center',True)
 
 
-# Print_DataFrame([P, Sx, COV_Sx, L, Y2, S, COV_S],'LHS_TMP',['P', 'Sx', 'COV_Sx', 'L', 'Y2', 'S', 'COV_S'])
+    Print_DataFrame([P, Sx, COV_Sx, L, Y2, S, COV_S],'LHS_TMP',['P', 'Sx', 'COV_Sx', 'L', 'Y2', 'S', 'COV_S'])
