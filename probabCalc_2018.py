@@ -293,57 +293,263 @@ def MaxEnt_GaussEval(limitstate,ParameterDict,L=5):
 
 if __name__ == "__main__": 
 
+	## SWITCHES between tests ##
+	############################
 
-	# limit state
-	r,e1,e2=sy.symbols("r e1 e2")
-	g=r-e1*e2
+	I_test='calc'
+	# 'Basis' : basic test case
+	# 'SiF2018_a': SiF 2018 load testcase - KR and KE separately
+	# 'calc': specific calculation
+	# 'ISO_cc' : ISO cc equivalent load case
 
-	# number of Monte Carlo
-	nsim=10
+	if I_test=='Basic':
+	
+		# limit state
+		r,e1,e2=sy.symbols("r e1 e2")
+		g=r-e1*e2
 
-	# ParameterDict
-	mr=20; sr=3
-	me1=3; se1=2
-	me2=5; se2=3
+		# number of Monte Carlo
+		nsim=10
 
-	R={
-	'name':'r',
-	'Dist':'N',
-	'DIM':"[N]",
-	'm':mr,
-	's':sr,
-	'info':''
-	}
+		# ParameterDict
+		mr=20; sr=3
+		me1=3; se1=2
+		me2=5; se2=3
 
-	E1={
-	'name':'e1',
-	'Dist':'LN',
-	'DIM':"[N]",
-	'm':me1,
-	's':se1,
-	'info':''
-	}
-
-	E2={
-	'name':'e2',
-	'Dist':'G',
-	'DIM':"[N]",
-	'm':me2,
-	's':se2,
-	'info':''
-	}
-
-	Dict={
-		'01':R,
-		'02':E1,
-		'03':E2
+		R={
+		'name':'r',
+		'Dist':'N',
+		'DIM':"[N]",
+		'm':mr,
+		's':sr,
+		'info':''
 		}
 
-	# Z,dfX,dfr=MonteCarlo(g,Dict,nsim)
-	# Print_DataFrame([dfr,dfX],'TestOutput/test3var',['r','X'])
-	# print(dfr)
+		E1={
+		'name':'e1',
+		'Dist':'LN',
+		'DIM':"[N]",
+		'm':me1,
+		's':se1,
+		'info':''
+		}
 
-	[m,s]=Taylor(g,Dict)
+		E2={
+		'name':'e2',
+		'Dist':'G',
+		'DIM':"[N]",
+		'm':me2,
+		's':se2,
+		'info':''
+		}
+
+		Dict={
+			'01':R,
+			'02':E1,
+			'03':E2
+			}
+
+		# Z,dfX,dfr=MonteCarlo(g,Dict,nsim)
+		# Print_DataFrame([dfr,dfX],'TestOutput/test3var',['r','X'])
+		# print(dfr)
+
+		[m,s]=Taylor(g,Dict)
 
 
-	print(m,s)
+		print(m,s)
+
+	elif I_test=='SiF2018_a':
+	
+		# limit state
+		G,Q,KR,KE=sy.symbols("G Q KR KE")
+		Z=KE/KR*(G+Q)
+
+		# parameter values
+		Gk=1275 # [kN]
+		Qk=425 # [kN]
+		chi=0.25
+
+		# ParameterDict
+		mG=Gk; sG=0.1*mG
+		mQ=0.2*Qk; sQ=1.1*mQ
+		mKE=1.; sKE=0.05
+		mKR=1.; sKR=0.15
+
+		g={
+		'name':'G',
+		'Dist':'N',
+		'DIM':"[kN]",
+		'm':mG,
+		's':sG,
+		'info':''
+		}
+
+		q={
+		'name':'Q',
+		'Dist':'G',
+		'DIM':"[kN]",
+		'm':mQ,
+		's':sQ,
+		'info':''
+		}
+
+		kr={
+		'name':'KR',
+		'Dist':'LN',
+		'DIM':"[-]",
+		'm':mKR,
+		's':sKR,
+		'info':''
+		}
+
+		ke={
+		'name':'KE',
+		'Dist':'LN',
+		'DIM':"[-]",
+		'm':mKE,
+		's':sKE,
+		'info':''
+		}
+
+
+		Dict={
+			'01':g,
+			'02':q,
+			'03':kr,
+			'04':ke
+			}
+
+		# Z,dfX,dfr=MonteCarlo(g,Dict,nsim)
+		# Print_DataFrame([dfr,dfX],'TestOutput/test3var',['r','X'])
+		# print(dfr)
+
+		[m,s]=Taylor(Z,Dict)
+
+
+		print(m,s)
+
+	elif I_test=='calc':
+	
+		# limit state
+		G,Q,KT=sy.symbols("G Q KT")
+		Z=KT*(G+Q)
+
+		# parameter values
+		Gk=2000 # [kN]
+		Qk=1333 # [kN]
+		chi=0.25
+
+		# ParameterDict
+		mG=Gk; sG=0.1*mG
+		mQ=0.2*Qk; sQ=1.1*mQ
+		# mKE=1.; sKE=0.05
+		# mKR=1.; sKR=0.15
+		mKT=1.0; sKT=0.05
+
+		g={
+		'name':'G',
+		'Dist':'N',
+		'DIM':"[kN]",
+		'm':mG,
+		's':sG,
+		'info':''
+		}
+
+		q={
+		'name':'Q',
+		'Dist':'G',
+		'DIM':"[kN]",
+		'm':mQ,
+		's':sQ,
+		'info':''
+		}
+
+		kt={
+		'name':'KT',
+		'Dist':'LN',
+		'DIM':"[-]",
+		'm':mKT,
+		's':sKT,
+		'info':''
+		}
+
+
+		Dict={
+			'01':g,
+			'02':q,
+			'03':kt,
+			}
+
+		# Z,dfX,dfr=MonteCarlo(g,Dict,nsim)
+		# Print_DataFrame([dfr,dfX],'TestOutput/test3var',['r','X'])
+		# print(dfr)
+
+		[m,s]=Taylor(Z,Dict)
+
+
+		print(m,s)
+
+	elif I_test=='ISO_cc':
+
+		# limit state
+		G,Q,KR,KE=sy.symbols("G Q KR KE")
+		Z=KE/KR*(G+Q)
+
+		# parameter values
+		Gk=2000. # [kN]
+		Qk=1333. # [kN]
+
+		# ParameterDict
+		mG=Gk; sG=0.1*mG
+		mQ=0.2*Qk; sQ=1.1*mQ
+		mKE=1.; sKE=0.05
+		mKR=1.; sKR=0.15
+
+		g={
+		'name':'G',
+		'Dist':'N',
+		'DIM':"[kN]",
+		'm':mG,
+		's':sG,
+		'info':''
+		}
+
+		q={
+		'name':'Q',
+		'Dist':'G',
+		'DIM':"[kN]",
+		'm':mQ,
+		's':sQ,
+		'info':''
+		}
+
+		kr={
+		'name':'KR',
+		'Dist':'LN',
+		'DIM':"[-]",
+		'm':mKR,
+		's':sKR,
+		'info':''
+		}
+
+		ke={
+		'name':'KE',
+		'Dist':'LN',
+		'DIM':"[-]",
+		'm':mKE,
+		's':sKE,
+		'info':''
+		}
+
+
+		Dict={
+			'01':g,
+			'02':q,
+			'03':kr,
+			'04':ke
+			}
+
+		[m,s]=Taylor(Z,Dict)
+
+
+		print(m,s)

@@ -9,7 +9,26 @@ import os, shutil
 
 
 
+######################## 
+###  READ FUNCTIONS  ###
+########################
 
+
+def Read_DataFrame(path,sheetList):
+	# read multiple sheets from *.xlsx worksheet
+
+	xl = pd.ExcelFile(path) # *.xlsx with input values
+
+	out={} # initialise output
+
+	for i,sheet in enumerate(sheetList):
+
+		# read *.xlsx worksheeet as df
+		local=xl.parse(sheet)
+		# assign to Dict
+		out[sheet]=local
+		
+	return out
 
 
 ######################### 
@@ -41,3 +60,24 @@ def PrintMaxEnt(data,targetdir,targetfilename,method='MCS'):
 		index=np.arange(1,n+1)
 		df=pd.DataFrame(data,columns=[data.name]); df.index=index
 		Print_DataFrame([df],targetdir+'/'+targetfilename,['DATA'])
+
+
+############################## 
+###  MAIN CONTROL - DEBUG  ###
+##############################
+
+
+if __name__ == "__main__":
+
+
+	## df path with out results ##
+	outpath="C:\\Users\\rvcoile\\OneDrive - UGent\\CalcCenter\\Results\\ISOcc120min\\outputFull.xlsx"
+	sheet1='out'
+	corrsheet='corrList1'
+
+	## trial function ##
+	read=Read_DatFrame(outpath,[sheet1,corrsheet])
+
+	## print output ##
+	print(read[corrsheet])
+

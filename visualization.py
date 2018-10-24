@@ -89,13 +89,29 @@ def LinePlot_XmultiY(df,axisLabels=['X','Y'],Xticks=None,Yticks=None,SW_show=Fal
 	if SW_return:
 		return fig,ax1	
 
-def histogram(df,Xticks,Yticks,width=1,Xlabel='X',Ylabel='PDF [-]'):
+def histogram(df,Xticks=None,Yticks=None,width=None,Xlabel='X',Ylabel='PDF [-]'):
 	# bar plot of pd.DataFrame, index as X, column as Y
 	# not finalized
+	# To Do: automate ticks
 
     # this is for plotting purpose
     index = df['X'].values
     height = df['mcsPDF'].values
+
+    # Xticks and Yticks
+    if Xticks is None:
+    	xmin=min(index); xminO=np.floor(np.log10(xmin)); Xmin=10**xminO; Xmin*=np.floor(xmin/Xmin)
+    	# xmax=max(index); xmaxO=np.floor(np.log10(xmax)); Xmax=10**xmaxO; Xmax*=np.ceil(xmax/Xmax)
+    	xmax=max(index); Xmax=10**xminO; Xmax*=(np.ceil(xmax/Xmax)+1)
+    	Xticks=np.arange(Xmin,Xmax,10**xminO)
+    if Yticks is None:
+    	ymax=max(height); ymaxO=np.floor(np.log10(ymax)); Ymax=10**ymaxO; Ymax*=np.ceil(ymax/Ymax)
+    	Yticks=np.linspace(0,Ymax,10)
+    # width of bars
+    if width is None:
+    	width=index[1]-index[0]
+    	print(width)
+
     fig= plt.bar(index,height,width)
     plt.xlabel(Xlabel, fontsize=10)
     plt.ylabel(Ylabel, fontsize=10)
